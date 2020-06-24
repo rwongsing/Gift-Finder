@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
-from wtforms.validators import InputRequired, Email, Length
+from wtforms.validators import InputRequired, Email, Length, URL
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -21,6 +21,13 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
+    
+    web1 = db.Column(db.String(80))
+    link1 = db.Column(db.String(80))
+    # web2 = db.Column(db.String(80))
+    # link2 = db.Column(db.String(80))
+    # web3 = db.Column(db.String(80))
+    # link3 = db.Column(db.String(80))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -35,6 +42,10 @@ class RegisterForm(FlaskForm):
     email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=50)])
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
+
+class addForm(FlaskForm):
+    website = StringField('website', validators=[InputRequired(), Length(min=1, max=20)])
+    link = StringField('link', validators=[InputRequired(), URL(message='Invalid link')])
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -61,7 +72,7 @@ def signup():
 
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,)
         db.session.add(new_user)
         db.session.commit()
 
@@ -72,15 +83,28 @@ def signup():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', name=current_user.username)
+    return render_template('dashboard.html', name=current_user.username, web1=current_user.web1, link1=current_user.link1)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-
     message = 'User has been successfully signed out'
     return render_template('message.html', message=message)
+
+@app.route('/add', methods=['GET', 'POST'])
+@login_required
+def add():
+    form = addForm()
+
+    if form.validate_on_submit():
+        current_user.web1 = form.website.data
+        current_user.link1 = form.link.data
+        db.session.commit()
+        
+        return redirect(url_for('dashboard'))
+    return render_template('add.html', form=form)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
