@@ -9,7 +9,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/robert/Coding/Gift Finder/database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/robert/Coding/Website Terminal/database.db'
 Bootstrap(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -78,7 +78,9 @@ def dashboard():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+
+    message = 'User has been successfully signed out'
+    return render_template('message.html', message=message)
 
 if __name__ == '__main__':
     app.run(debug=True)
