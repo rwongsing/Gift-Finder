@@ -24,10 +24,10 @@ class User(UserMixin, db.Model):
     
     web1 = db.Column(db.String(80))
     link1 = db.Column(db.String(80))
-    # web2 = db.Column(db.String(80))
-    # link2 = db.Column(db.String(80))
-    # web3 = db.Column(db.String(80))
-    # link3 = db.Column(db.String(80))
+    web2 = db.Column(db.String(80))
+    link2 = db.Column(db.String(80))
+    web3 = db.Column(db.String(80))
+    link3 = db.Column(db.String(80))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -80,10 +80,11 @@ def signup():
         return render_template('message.html', message=message)
     return render_template('signup.html', form=form)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', name=current_user.username, web1=current_user.web1, link1=current_user.link1)
+    return render_template('dashboard.html', name=current_user.username, web1=current_user.web1, link1=current_user.link1,
+    web2=current_user.web2, link2=current_user.link2, web3=current_user.web3, link3=current_user.link3)
 
 @app.route('/logout')
 @login_required
@@ -98,10 +99,20 @@ def add():
     form = addForm()
 
     if form.validate_on_submit():
-        current_user.web1 = form.website.data
-        current_user.link1 = form.link.data
-        db.session.commit()
+        if current_user.web1 == None:
+            current_user.web1 = form.website.data
+            current_user.link1 = form.link.data
+        elif current_user.web2 == None:
+            current_user.web2 = form.website.data
+            current_user.link2 = form.link.data
+        elif current_user.web3 == None:
+            current_user.web3 = form.website.data
+            current_user.link3 = form.link.data
+        else:
+            message='Error: All slots are filled. Please delete a slot.'
+            return render_template('message.html', message=message)
         
+        db.session.commit()
         return redirect(url_for('dashboard'))
     return render_template('add.html', form=form)
 
